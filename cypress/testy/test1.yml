@@ -1,0 +1,29 @@
+config:
+  target: "http://httpbin.org/"
+  phases:
+    - duration: 60
+      arrivalRate: 50
+  payload:
+    path: "example.json"
+plugins:
+  ensure:
+    thresholds:
+      - http.response_time.p95: 1000
+    conditions:
+      - expression: vusers.failed == 0
+      - expression: "http.request_rate >= 2 and http.response_time.max < 600"
+scenarios:
+  - name: "My Scenario"
+    flow:
+      - get:
+          url: "/"
+          expect:
+            statusCode: 200
+      - post:
+          url: "/submit"
+          headers:
+            Content-Type: "application/json"
+          json:
+            $ref: "payload#/data"
+          expect:
+            statusCode: 200
